@@ -42,11 +42,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Elements\Alu.cs" />
     <Compile Include="Elements\Commands.cs" />
     <Compile Include="Elements\ControlSignals.cs" />
     <Compile Include="Elements\Deccom.cs" />
     <Compile Include="Elements\Ir.cs" />
+    <Compile Include="Elements\M.cs" />
     <Compile Include="Elements\Ron.cs" />
+    <Compile Include="Elements\Rvv.cs" />
+    <Compile Include="Elements\Uccom.cs" />
     <Compile Include="MemoryManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

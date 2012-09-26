@@ -33,8 +33,8 @@ namespace Emulator
                 ControlSignals.SetBrokenSignals();
                 var IA = addrByte + Ir.IR;
                 byte SP;
-                if (!memoryManager.TryGetByte(IA +1 , out SP))
-                    throw new Exception(string.Format("Process error , no data by offset {0}" , IA+1));
+                if (!memoryManager.TryGetByte(IA , out SP))
+                    throw new Exception(string.Format("Process error , no data by offset {0}" , IA));
                 var res = M.Calculate(SP, IA, Rvv.RVV);
                 var aluRes = Alu.Calculate(operationByte, Ron.Sum, res);
 
@@ -43,21 +43,21 @@ namespace Emulator
                     Ir.IR = mRes;
 
                 if (ControlSignals.Zam1)
-                    Ron.Set(aluRes , Alu.pr);
+                    Ron.Set(aluRes , Alu.pr , operationByte);
 
                 if (ControlSignals.Zapp)
-                    memoryManager.TryWrite((byte) aluRes, IA + 1);
-
-                ip = (ControlSignals.Pereh) ? IA : ip + 2;
+                    memoryManager.TryWrite((byte) aluRes, IA);
 
                 if (!ControlSignals.Pusk)
                     break;
+                ip = M.NextOffset(IA, ip, operationByte);
             }
             var sb = new StringBuilder("Memory:\n");
             sb.Append(memoryManager);
             sb.AppendFormat("IP : {0}\n", ip);
-            sb.AppendFormat("RON : {0}\n", Ron.Sum);
-            sb.AppendFormat("IR : {0}\n", Ir.IR);
+            sb.AppendFormat("RON : {0:x2}\n", Ron.Sum);
+            sb.AppendFormat("IR : {0:x2}\n", Ir.IR);
+            Console.WriteLine(sb);
         }
     }
 }

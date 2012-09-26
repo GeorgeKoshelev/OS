@@ -11,7 +11,7 @@ namespace Emulator.Elements
 
         public static bool Prznk { get; private set; }
 
-        public static void Set(int res1 , bool pr)
+        public static void Set(int res1 , bool pr , byte operByte)
         {
             if (!ControlSignals.Zam1) return;
             _sum = res1;

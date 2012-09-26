@@ -8,7 +8,7 @@
         {
             var command = Commands.GetCommandByOperationCode(operationCode);
             int res;
-            switch (command.P)
+            switch (command.Op)
             {
                 case 0:
                     res = sum;

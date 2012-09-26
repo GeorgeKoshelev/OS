@@ -40,7 +40,7 @@ namespace Emulator
         public bool TryGetByte(int offset , out byte b)
         {
             b = 0;
-            if (offset >= 0 && offset <= _memory.Length)
+            if (offset >= 0 && offset < _memory.Length)
             {
                 b = _memory[offset];
                 return true;
@@ -50,7 +50,7 @@ namespace Emulator
 
         public bool TryWrite(byte value , int offset)
         {
-            if (offset >=0 && offset <= _memory.Length)
+            if (offset >=0 && offset < _memory.Length)
             {
                 _memory[offset] = value;
                 return true;

@@ -22,24 +22,11 @@ namespace Emulator.Elements
             {255 , new Command{OperationCode = 255 , I = 0 , P = 4 , Op = 15}},
         };
 
-        private static readonly Dictionary<int, int> _i = new Dictionary<int, int>
-        {
-            {11 , 0} , {15 , 1} , {21 , 0} , {25 , 1} , {31 , 0}
-        }; 
-
         public static Command GetCommandByOperationCode(int operationCode)
         {
             if (_commands.ContainsKey(operationCode))
                 return _commands[operationCode];
             throw new Exception(string.Format("Invalid operation code : {0}" , operationCode));
-        }
-
-        public static bool TryGetIByOperationCode(int operationCode , out int i)
-        {
-            i = -1;
-            if (!_i.ContainsKey(operationCode)) return false;
-            i = _i[operationCode];
-            return true;
         }
 
     }
