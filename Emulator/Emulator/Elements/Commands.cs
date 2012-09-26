@@ -7,19 +7,19 @@ namespace Emulator.Elements
     {
         private static readonly Dictionary<int, Command> _commands = new Dictionary<int, Command>
         {
-            {00 , new Command{OperationCode = 00 , I = -1 , P = 0 , Op = 0}},
-            {11 , new Command{OperationCode = 11 , I = 0 , P = 1 , Op = 1}},
-            {15 , new Command{OperationCode = 15 , I = 1 , P = 1 , Op = 1}},
-            {02 , new Command{OperationCode = 02 , I = -1 , P = 2 , Op = 0}},
-            {21 , new Command{OperationCode = 21 , I = 0 , P = 1 , Op = 2}},
-            {25 , new Command{OperationCode = 25 , I = 1 , P = 1 , Op = 2}},
-            {31 , new Command{OperationCode = 31 , I = 0 , P = 1 , Op = 3}},
-            {254 , new Command{OperationCode = 254 , I = -1 , P = 4 , Op = 15}},
-            {240 , new Command{OperationCode = 240 , I = -1 , P = 4 , Op = 15}},
-            {241 , new Command{OperationCode = 241 , I = -1 , P = 4 , Op = 15}},
-            {244 , new Command{OperationCode = 244 , I = -1 , P = 4 , Op = 15}},
-            {245 , new Command{OperationCode = 245 , I = -1 , P = 4 , Op = 15}},
-            {255 , new Command{OperationCode = 255 , I = -1 , P = 4 , Op = 15}},
+            {00 , new Command{OperationCode = 00 , I = 0 , P = 0 , Op = 0}},
+            {17 , new Command{OperationCode = 17 , I = 0 , P = 1 , Op = 1}},
+            {21 , new Command{OperationCode = 21 , I = 1 , P = 1 , Op = 1}},
+            {02 , new Command{OperationCode = 02 , I = 0 , P = 2 , Op = 0}},
+            {33 , new Command{OperationCode = 33 , I = 0 , P = 1 , Op = 2}},
+            {37 , new Command{OperationCode = 37 , I = 1 , P = 1 , Op = 2}},
+            {49 , new Command{OperationCode = 49 , I = 0 , P = 1 , Op = 3}},
+            {254 , new Command{OperationCode = 254 , I = 0 , P = 4 , Op = 15}},
+            {240 , new Command{OperationCode = 240 , I = 0 , P = 4 , Op = 15}},
+            {241 , new Command{OperationCode = 241 , I = 0 , P = 4 , Op = 15}},
+            {244 , new Command{OperationCode = 244 , I = 0 , P = 4 , Op = 15}},
+            {245 , new Command{OperationCode = 245 , I = 0 , P = 4 , Op = 15}},
+            {255 , new Command{OperationCode = 255 , I = 0 , P = 4 , Op = 15}},
         };
 
         private static readonly Dictionary<int, int> _i = new Dictionary<int, int>
