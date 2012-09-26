@@ -50,7 +50,6 @@
     <Compile Include="Elements\M.cs" />
     <Compile Include="Elements\Ron.cs" />
     <Compile Include="Elements\Rvv.cs" />
-    <Compile Include="Elements\Uccom.cs" />
     <Compile Include="MemoryManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

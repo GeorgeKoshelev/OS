@@ -31,6 +31,8 @@ namespace Emulator
                     break;
                 Deccom.GenerateControlSignals(operationByte);
                 ControlSignals.SetBrokenSignals();
+                if (!ControlSignals.Pusk)
+                    break;
                 var IA = addrByte + Ir.IR;
                 byte SP;
                 if (!memoryManager.TryGetByte(IA , out SP))
