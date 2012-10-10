@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
 
 namespace Sorter
@@ -24,10 +21,17 @@ namespace Sorter
             {
                 Storage.Add(value);
             }
+            catch(OutOfMemoryException e)
+            {
+                _log.ErrorFormat("[StorageHandler-TryAddValue] Can't add value to storage : {0}", e.Message);
+                Console.WriteLine("Невозможно добавить значение в память, переполнение : {0}", e.Message);
+                return false;
+            }
             catch(Exception e)
             {
                 _log.ErrorFormat("[StorageHandler-TryAddValue] Can't add value to storage : {0}" , e.Message);
-                Console.WriteLine("Can't add value to storage : {0}" , e.Message);
+                Console.WriteLine("Невозможно добавить значение в память : {0}", e.Message);
+                return false;
             }
             return true;
         }

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
 
 namespace Sorter
@@ -18,13 +14,23 @@ namespace Sorter
             StorageHandler = new StorageHandler();
         }
 
-        public void TryReadIntValuesFromStream(StreamReader stream)
+        public void ReadIntValuesFromStream(StreamReader stream)
         {
             try
             {
                 while(stream.Peek() >= 0)
                 {
-                    var line = stream.ReadLine();
+                    string line;
+                    try
+                    {
+                        line = stream.ReadLine();
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine("Can't read string , read logs for details");
+                        _log.ErrorFormat("[FileReader-ReadIntValuesFromStream] Can't read line : {0}" , e.Message);
+                        continue;
+                    }
                     if (line == null) continue;
                     var elements = line.Split(' ');
                     foreach (var element in elements)
@@ -45,6 +51,11 @@ namespace Sorter
             catch(Exception e)
             {
                 _log.ErrorFormat("[FileReader-ReadIntValuesFromStream] error : {0}" , e.Message);
+            }
+            finally
+            {
+                if (stream!=null)
+                    stream.Close();
             }
         }
     }

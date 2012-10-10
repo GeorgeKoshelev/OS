@@ -2,3 +2,4 @@ bin/
 _ReSharper*/
 obj/
 packages/
+.nuget/

@@ -19,7 +19,7 @@ namespace Sorter
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             if (!File.Exists(filePath))
             {
-                Console.WriteLine("File {0} not found" , fileName);
+                Console.WriteLine("No file {0}" , fileName);
                 _log.ErrorFormat("[FileManager-TryGetStream] file {0} not found" , filePath);
                 return false;
             }
@@ -29,6 +29,7 @@ namespace Sorter
             }
             catch(Exception e)
             {
+                Console.WriteLine("Can't creater stream for {0}, ignoring file",fileName);
                 _log.ErrorFormat("[FileManager-TryGetStream] error : {0}" , e.Message);
                 return false;
             }
