@@ -2,31 +2,32 @@
 
 #include <efi.h>
 #include <efilib.h>
-#include <stdio.h>
 
-typedef char * string;
+typedef CHAR16 * string;
 
 const string GetMemoryTypeDisplayValue(UINT32 MemoryType);
 EFI_STATUS PrintMemoryMap(void);
 EFI_STATUS GetMemoryMap(EFI_MEMORY_DESCRIPTOR ** map , UINTN * size , UINTN * key , UINTN * dsize , UINT32 * dversion );
 void HandleAllocatePoolError(EFI_STATUS err);
 void HandleGetMemoryMapError(EFI_STATUS err);
+void PrintMemoryStatus(UINTN size , UINTN key , UINTN dsize , UINT32 dversion);
+void PrintMappingStatus(int index , EFI_MEMORY_DESCRIPTOR *pointer );
 
 const string DisplayMemoryTypes[] = {
-    "EfiReservedMemoryType",
-    "EfiLoaderCode",
-    "EfiLoaderData",
-    "EfiBootServicesCode",
-    "EfiBootServicesData",
-    "EfiRuntimeServicesCode",
-    "EfiRuntimeServicesData",
-    "EfiConventionalMemory",
-    "EfiUnusableMemory",
-    "EfiACPIReclaimMemory",
-    "EfiACPIMemoryNVS",
-    "EfiMemoryMappedIO",
-    "EfiMemoryMappedIOPortSpace",
-    "EfiPalCode",
+    L"EfiReservedMemoryType",
+    L"EfiLoaderCode",
+    L"EfiLoaderData",
+    L"EfiBootServicesCode",
+    L"EfiBootServicesData",
+    L"EfiRuntimeServicesCode",
+    L"EfiRuntimeServicesData",
+    L"EfiConventionalMemory",
+    L"EfiUnusableMemory",
+    L"EfiACPIReclaimMemory",
+    L"EfiACPIMemoryNVS",
+    L"EfiMemoryMappedIO",
+    L"EfiMemoryMappedIOPortSpace",
+    L"EfiPalCode",
 };
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle , EFI_SYSTEM_TABLE * SystemTable){
@@ -36,27 +37,53 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle , EFI_SYSTEM_TABLE * SystemTable){
 
 const string GetMemoryTypeDisplayValue(UINT32 MemoryType){
 	return (MemoryType > sizeof(DisplayMemoryTypes)) ?
-		 "Error: Unknown Memory Type" : DisplayMemoryTypes[MemoryType]; 
+		L"Error: Unknown Memory Type" : DisplayMemoryTypes[MemoryType]; 
 		
 }
 
+void PrintMappingStatus(int index , EFI_MEMORY_DESCRIPTOR *pointer){
+	UINTN size = pointer->NumberOfPages * 4096; 
+	EFI_PHYSICAL_ADDRESS PhysicalEnd = pointer->PhysicalStart + size;
+	EFI_VIRTUAL_ADDRESS VirtualEnd = pointer->VirtualStart + size;
+	Print(L"%d Type: %s\n", index , GetMemoryTypeDisplayValue(pointer->Type));
+	Print(L"PhysicalMemory : %016llx-%016llx\n" , pointer->PhysicalStart , PhysicalEnd);
+	Print(L"VirtualMemory : %016llx-%016llx\n\n", pointer->VirtualStart , VirtualEnd);
+}
+
 EFI_STATUS PrintMemoryMap(void){
-	
+	EFI_STATUS err;
+	EFI_MEMORY_DESCRIPTOR * map;
+	UINTN size;
+	UINTN key;
+	UINTN dsize;
+	UINT32 dversion;
+	err = GetMemoryMap (&map , &size , &key , &dsize , &dversion);
+	if (err != EFI_SUCCESS)
+		return err;
+	PrintMemoryStatus(size,key,dsize,dversion);
+	EFI_MEMORY_DESCRIPTOR * pointer = map;
+	int i = 0;
+
+	while((void *) pointer < (void *) map + size){
+		PrintMappingStatus(i , pointer);
+		pointer = (void *) pointer + dsize;
+		++i;
+	}
 	return EFI_SUCCESS;
 }
 
 EFI_STATUS GetMemoryMap(EFI_MEMORY_DESCRIPTOR ** map , UINTN * size , UINTN * key , UINTN * dsize , UINT32 * dversion ){
-	*size = 0;
+	*size = sizeof(**map) * 10;
 	EFI_STATUS err;
 	for(;;){
-		*size += sizeof(**map) * 10;
+		*size += sizeof(**map);
 		err = uefi_call_wrapper(BS->AllocatePool , 3 , EfiLoaderData ,* size , (void **) map );
 		if (err != EFI_SUCCESS){
 			HandleAllocatePoolError(err);
 			return err;
 		}
 		err = uefi_call_wrapper(BS->GetMemoryMap , 5 , size , *map , key,dsize,dversion);
-		if (err!= EFI_SUCCESS){
+		if (err != EFI_SUCCESS){
 			HandleGetMemoryMapError(err);
 			if (err != EFI_BUFFER_TOO_SMALL ) return err;
 			uefi_call_wrapper(BS->FreePool, 1, (void *)*map);	
@@ -65,26 +92,32 @@ EFI_STATUS GetMemoryMap(EFI_MEMORY_DESCRIPTOR ** map , UINTN * size , UINTN * ke
 			return err;
 		}
 	}
-	return EFI_SUCCESS;
 }
 
 void HandleAllocatePoolError(EFI_STATUS err){
-	printf("Allocation error: ");
+	Print(L"Allocation error: ");
 	if (err == EFI_OUT_OF_RESOURCES){
-		printf ("The pool requested could not be allocated.");
+		Print(L"The pool requested could not be allocated.");
 	}
 	else if (err == EFI_INVALID_PARAMETER){
-		printf ("PoolType was invalid.");
+		Print(L"PoolType was invalid.");
 	}
 	else{
-		printf("Buffer was NULL.");
+		Print(L"Buffer was NULL.");
 	}
 }
 void HandleGetMemoryMapError(EFI_STATUS err){
-	printf("Get Memory Map error: ");
+	Print(L"Get Memory Map error: ");
 	if (err == EFI_BUFFER_TOO_SMALL){
-		printf("The MemoryMap buffer was too small.");
+		Print(L"The MemoryMap buffer was too small.");
 	}
-	printf("MemoryMapSize is NULL or The MemoryMap buffer is not too small and MemoryMap is NULL."
+	Print(L"MemoryMapSize is NULL or The MemoryMap buffer is not too small and MemoryMap is NULL."
 	);
+}
+void PrintMemoryStatus(UINTN size , UINTN key , UINTN dsize , UINT32 dversion){
+	Print(L"MemoryMapSize: %d\n",size);
+	Print(L"MapKey: %d\n",key);
+	Print(L"DescriptorSize: %d\n",dsize);
+	Print(L"DescriptorVersion : %d\n",dversion);
+	Print(L"-------------------------------------------------------------\n");
 }
