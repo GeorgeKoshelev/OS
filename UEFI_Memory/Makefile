@@ -24,7 +24,7 @@ OBJS		= memory.o
 
 all: $(TARGET)
 
-helloworld.efi: $(OBJS)
+memory.efi: $(OBJS)
 
 %.efi: %.o 
 	$(LD) $(LDFLAGS) $^ -o $@ $(EFI_LIBS)
