@@ -4,8 +4,8 @@ namespace Emulator.Elements
 {
     class Ron
     {
-        
-        private static int _sum = SettingsManager.GetRONsumValueFromConfigOrDefault();
+
+        private static int _sum = SettingsManager.GetValueFromConfigOrDefaulr("RON.sum");
         public static int Sum { get { return _sum; }}
 
 

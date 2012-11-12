@@ -5,7 +5,9 @@ namespace Emulator.Elements
 {
     class Commands
     {
+// ReSharper disable InconsistentNaming
         private static readonly Dictionary<int, Command> _commands = new Dictionary<int, Command>
+// ReSharper restore InconsistentNaming
         {
             {00 , new Command{OperationCode = 00 , I = 0 , P = 0 , Op = 0}},
             {17 , new Command{OperationCode = 17 , I = 0 , P = 1 , Op = 1}},
@@ -28,7 +30,6 @@ namespace Emulator.Elements
                 return _commands[operationCode];
             throw new Exception(string.Format("Invalid operation code : {0}" , operationCode));
         }
-
     }
 
     public struct Command
@@ -38,5 +39,4 @@ namespace Emulator.Elements
         public int P { get; set; }
         public int Op { get; set; }
     }
-
 }

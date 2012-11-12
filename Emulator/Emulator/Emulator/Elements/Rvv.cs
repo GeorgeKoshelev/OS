@@ -4,9 +4,9 @@ namespace Emulator.Elements
 {
     class Rvv
     {
-        private static readonly int _rvv = SettingsManager.GetRVVValueFromConfigOrDefault();
+// ReSharper disable InconsistentNaming
+        private static readonly int _rvv = SettingsManager.GetValueFromConfigOrDefaulr("RVV");
+// ReSharper restore InconsistentNaming
         public static int RVV { get { return _rvv; }}
-        
-        //TODO: ADD READ AND WRITE METHODS
     }
 }

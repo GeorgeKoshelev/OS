@@ -8,6 +8,9 @@ namespace Emulator.settings
 {
     public class SettingsManager
     {
+        public static List<string> BrokenSignals = new List<string>(); 
+        private static readonly string[] SignalsNames = new[] { "pusk", "vzap1", "zam1", "zam2", "chist", "op", "vib", "zapp", "pereh" };
+
         public static string MemoryPath()
         {
             try
@@ -21,47 +24,22 @@ namespace Emulator.settings
             }
         } 
 
-        public static Dictionary<string , bool> confSignals = new Dictionary<string, bool>(); 
-
-        private static readonly string[] signalsNames = new []{"pusk" , "vzap1" , "zam1" , "zam2" , "chist", "op" ,"vib" ,"zapp" ,"pereh"};
-
         public static bool HasAllSignals()
         {
-            foreach (var signalsName in signalsNames)
+            foreach (var signalsName in SignalsNames)
             {
                 if (!ConfigurationManager.AppSettings.AllKeys.Contains(signalsName))
                     return false;
-                confSignals.Add(signalsName, (Int32.Parse(ConfigurationManager.AppSettings[signalsName]) == 1));
+                if (Int32.Parse(ConfigurationManager.AppSettings[signalsName]) != 1)
+                    BrokenSignals.Add(signalsName);
             }
             return true;
         }
 
-        public static int GetIRValueFromConfigOrDefault()
+        public static int GetValueFromConfigOrDefaulr(string name)
         {
-            return (ConfigurationManager.AppSettings.AllKeys.Contains("IR"))
-                       ? Int32.Parse(ConfigurationManager.AppSettings["IR"])
-                       : 0;
-        }
-
-        public static int GetRVVValueFromConfigOrDefault()
-        {
-            return (ConfigurationManager.AppSettings.AllKeys.Contains("RVV"))
-                       ? Int32.Parse(ConfigurationManager.AppSettings["RVV"])
-                       : 0;
-        }
-
-        public static int GetRONprznkValueFromConfigOrDefault()
-        {
-            return (ConfigurationManager.AppSettings.AllKeys.Contains("RON.prznk"))
-                       ? Int32.Parse(ConfigurationManager.AppSettings["RON.prznk"])
-                       : 0;
-        }
-
-        public static int GetRONsumValueFromConfigOrDefault()
-        {
-            return (ConfigurationManager.AppSettings.AllKeys.Contains("RON.sum"))
-                       ? Int32.Parse(ConfigurationManager.AppSettings["RON.sum"])
-                       : 0;
+            return (ConfigurationManager.AppSettings.AllKeys.Contains(name))
+                       ? Int32.Parse(ConfigurationManager.AppSettings[name]): 0;
         }
     }
 }

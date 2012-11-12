@@ -1,8 +1,10 @@
-﻿namespace Emulator.Elements
+﻿using System;
+
+namespace Emulator.Elements
 {
     class Alu
     {
-        public static bool pr;
+        public static bool Pr;
 
         public static int Calculate(byte operationCode , int sum , int resM)
         {
@@ -29,16 +31,16 @@
             switch (operationCode)
             {
                 case 254:
-                    pr = true;
+                    Pr = true;
                     break;
                 case 240:
-                    pr = (res == 0);
+                    Pr = (res == 0);
                     break;
                 case 241:
-                    pr = (res > 0);
+                    Pr = (res > 0);
                     break;
                 default:
-                    pr = false;
+                    Pr = false;
                     break;
             }
             return res;

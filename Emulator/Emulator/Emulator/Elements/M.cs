@@ -2,6 +2,7 @@
 {
     class M
     {
+// ReSharper disable InconsistentNaming
         public static int Calculate(int SP , int IA , int RVV)
         {
             return ControlSignals.Vib == 0 ? SP : IA;
@@ -26,5 +27,6 @@
                     return ip + 2;
             }
         }
+// ReSharper restore InconsistentNaming
     }
 }
