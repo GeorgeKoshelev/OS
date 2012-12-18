@@ -1,6 +1,4 @@
-﻿using Emulator.settings;
-
-namespace Emulator.Elements
+﻿namespace Emulator.Elements
 {
     class ControlSignals
     {

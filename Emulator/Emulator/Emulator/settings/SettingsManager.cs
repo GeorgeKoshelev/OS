@@ -8,8 +8,8 @@ namespace Emulator.settings
 {
     public class SettingsManager
     {
-        public static List<string> BrokenSignals = new List<string>(); 
         private static readonly string[] SignalsNames = new[] { "pusk", "vzap1", "zam1", "zam2", "chist", "op", "vib", "zapp", "pereh" };
+        public static Dictionary<string, bool> BrokenSignals = new Dictionary<string, bool>();
 
         public static string MemoryPath()
         {
@@ -26,12 +26,12 @@ namespace Emulator.settings
 
         public static bool HasAllSignals()
         {
-            foreach (var signalsName in SignalsNames)
+            foreach (var signalName in SignalsNames)
             {
-                if (!ConfigurationManager.AppSettings.AllKeys.Contains(signalsName))
+                if (!ConfigurationManager.AppSettings.AllKeys.Contains(signalName))
                     return false;
-                if (Int32.Parse(ConfigurationManager.AppSettings[signalsName]) != 1)
-                    BrokenSignals.Add(signalsName);
+                if (!BrokenSignals.ContainsKey(signalName))
+                    BrokenSignals.Add(signalName , Int32.Parse(ConfigurationManager.AppSettings[signalName]) != 1);
             }
             return true;
         }
