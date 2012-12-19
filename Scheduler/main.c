@@ -11,6 +11,11 @@
 #define STACKSIZE 4096              
 #define INTERVAL 100
 
+typedef struct{
+	ucontext_t context;
+	int isTerminated;
+} context_extension;
+
 int isDebug = 0;
 int context_index = -1;
 
@@ -18,7 +23,7 @@ sigset_t set;
 ucontext_t scheduler_context;
 void *signal_stack;
 
-ucontext_t contexts[NUMCONTEXTS];
+context_extension contexts[NUMCONTEXTS];
 
 
 ucontext_t * current_context;
@@ -29,16 +34,18 @@ void sheduler_sleep(int);
 void scheduler()
 {
 	context_index = ++context_index % NUMCONTEXTS;
-	current_context = &contexts[context_index];
-	printf("run thread %d\n", context_index);
-	setcontext(current_context);
+	if (contexts[context_index].isTerminated == 0){
+		current_context = &contexts[context_index].context;
+		printf("run thread %d\n", context_index);
+		setcontext(current_context);
+	}
 }
 
 
 void timer_interrupt(int j, siginfo_t *si, void *old_context)
 {
 	printf("\npause thread %d\n",context_index);
-	contexts[context_index % NUMCONTEXTS] = *( ucontext_t *) old_context;
+	contexts[context_index % NUMCONTEXTS].context = *( ucontext_t *) old_context;
 	swapcontext(current_context , &scheduler_context);
 }
 
@@ -69,15 +76,15 @@ void setup_signals(void)
     	}
 }
 
-void low_priority_thread(int i)
+void low_priority_thread()
 {
-    while(1) {
-	int j = 0;
+	int j;
 	for(j = 0; j < 20 ; j++){
 		printf(" %d ",j);
 		poll(NULL,0,100);
-	}
-    };
+    	}
+    	contexts[context_index].isTerminated = 1;
+	printf("Thread %d is terminated\n",context_index);
 }
 
 void create_thread(ucontext_t *uc,  void *function)
@@ -92,11 +99,12 @@ void create_thread(ucontext_t *uc,  void *function)
     uc->uc_stack.ss_sp = stack;
     uc->uc_stack.ss_size = STACKSIZE;
     uc->uc_stack.ss_flags = 0;
+    uc->uc_link = &scheduler_context;
     if (sigemptyset(&uc->uc_sigmask) < 0){
       printf("Can't initialize the signal set\n");
       exit(1);
     }
-    makecontext(uc, function, 1 , 9);
+    makecontext(uc, function, 0 );
 }
 
 int main(int argc , char* argv[])
@@ -109,7 +117,8 @@ int main(int argc , char* argv[])
     	}
 	int i;
     	for( i =  0; i < NUMCONTEXTS; i++){
-        	create_thread(&contexts[i], low_priority_thread);
+        	create_thread(&contexts[i].context, low_priority_thread);
+		contexts[i].isTerminated = 0;
 	}
 	setup_signals();
 	init_scheduler_context(&scheduler_context);
