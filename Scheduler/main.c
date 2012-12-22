@@ -3,28 +3,30 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <poll.h>
 
-#define NUMCONTEXTS 10              
+#define NUMCONTEXTS 6
+              
 #define STACKSIZE 4096              
 #define INTERVAL 100
 
 typedef struct{
 	ucontext_t context;
 	int isTerminated;
+	int priority;
+	time_t wakeUpTime;
+	int time_to_sleep;
 } context_extension;
 
 int isDebug = 0;
 int context_index = -1;
-
+int threads_alive;
 sigset_t set;                       
 ucontext_t scheduler_context;
 void *signal_stack;
 
 context_extension contexts[NUMCONTEXTS];
-
 
 ucontext_t * current_context;
 struct itimerval it;
@@ -33,19 +35,46 @@ void sheduler_sleep(int);
 
 void scheduler()
 {
-	context_index = ++context_index % NUMCONTEXTS;
-	if (contexts[context_index].isTerminated == 0){
-		current_context = &contexts[context_index].context;
-		printf("run thread %d\n", context_index);
-		setcontext(current_context);
+	sheduler_sleep(0);
+	while(threads_alive != 0){
+		int k;
+		time_t my_time = time(NULL);
+		for (k = NUMCONTEXTS/2;k<NUMCONTEXTS;k++){
+			if (contexts[k].isTerminated == 1)
+				continue;
+			if (my_time > contexts[k].wakeUpTime){
+				context_index = k;
+				current_context = &contexts[k].context;	
+				printf("run thread %d,priority %d\n",k,contexts[k].priority);
+				sheduler_sleep(1);
+				setcontext(current_context);
+			}
+		}
+		for (k = 0 ; k < NUMCONTEXTS/2;k++){
+			if (contexts[k].isTerminated == 1)
+				continue;
+			if (my_time > contexts[k].wakeUpTime){
+				context_index = k;
+				current_context = &contexts[k].context;
+				printf("run thread %d , priority %d\n",k,contexts[k].priority);
+				sheduler_sleep(1);
+				setcontext(current_context);
+			}
+		}
+		poll(NULL,0,50);
 	}
 }
 
+void sleep_thread(int ms, int index){
+	time_t wut = time(NULL);
+	contexts[index].wakeUpTime = wut + ms;
+}
 
 void timer_interrupt(int j, siginfo_t *si, void *old_context)
 {
-	printf("\npause thread %d\n",context_index);
-	contexts[context_index % NUMCONTEXTS].context = *( ucontext_t *) old_context;
+	printf("\npause thread %d for %d seconds \n",context_index,contexts[context_index].time_to_sleep);
+	contexts[context_index].context = *( ucontext_t *) old_context;
+	sleep_thread(contexts[context_index].time_to_sleep,context_index); 
 	swapcontext(current_context , &scheduler_context);
 }
 
@@ -79,12 +108,24 @@ void setup_signals(void)
 void low_priority_thread()
 {
 	int j;
-	for(j = 0; j < 20 ; j++){
+	for(j = 0; j < 15 ; j++){
 		printf(" %d ",j);
 		poll(NULL,0,100);
     	}
     	contexts[context_index].isTerminated = 1;
-	printf("Thread %d is terminated\n",context_index);
+	threads_alive--;
+	printf("\nThread %d is terminated\n",context_index);
+}
+
+void high_priority_thread(){
+	int j;
+	for(j = 97 ; j < 122 ; j++ ){
+		printf(" %c ",j);
+		poll(NULL,0,100);
+	}
+	contexts[context_index].isTerminated = 1;
+	threads_alive--;
+	printf("\nThread %d is terminated\n",context_index);
 }
 
 void create_thread(ucontext_t *uc,  void *function)
@@ -109,6 +150,7 @@ void create_thread(ucontext_t *uc,  void *function)
 
 int main(int argc , char* argv[])
 {
+	threads_alive = NUMCONTEXTS;
 	int c;
     	signal_stack = malloc(STACKSIZE);
 	if (signal_stack == NULL) {
@@ -116,14 +158,23 @@ int main(int argc , char* argv[])
         	exit(1);
     	}
 	int i;
-    	for( i =  0; i < NUMCONTEXTS; i++){
+    	for( i =  0; i < NUMCONTEXTS/2; i++){
         	create_thread(&contexts[i].context, low_priority_thread);
 		contexts[i].isTerminated = 0;
+		contexts[i].priority = 1;
+		contexts[i].wakeUpTime = time(NULL);
+		contexts[i].time_to_sleep = 4; 
+	}
+	for (i = NUMCONTEXTS/2 ; i< NUMCONTEXTS ; i++){
+		create_thread(&contexts[i].context,high_priority_thread);
+		contexts[i].isTerminated = 0;
+		contexts[i].priority = 2;
+		contexts[i].wakeUpTime = time(NULL);
+		contexts[i].time_to_sleep = 5;
 	}
 	setup_signals();
 	init_scheduler_context(&scheduler_context);
 	current_context = &scheduler_context;
-    	sheduler_sleep(1);
 	setcontext(current_context);
 	return 0;
 }
