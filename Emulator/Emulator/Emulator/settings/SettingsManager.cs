@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -9,7 +8,8 @@ namespace Emulator.settings
     public class SettingsManager
     {
         private static readonly string[] SignalsNames = new[] { "pusk", "vzap1", "zam1", "zam2", "chist", "op", "vib", "zapp", "pereh" };
-        public static Dictionary<string, bool> BrokenSignals = new Dictionary<string, bool>();
+
+        public static bool [] BrokenSignals = new bool[9];
 
         public static string MemoryPath()
         {
@@ -24,14 +24,19 @@ namespace Emulator.settings
             }
         } 
 
-        public static bool HasAllSignals()
+        public static bool TryInitializeSignals()
         {
             foreach (var signalName in SignalsNames)
             {
                 if (!ConfigurationManager.AppSettings.AllKeys.Contains(signalName))
                     return false;
-                if (!BrokenSignals.ContainsKey(signalName))
-                    BrokenSignals.Add(signalName , Int32.Parse(ConfigurationManager.AppSettings[signalName]) != 1);
+                int value;
+                if (!Int32.TryParse(ConfigurationManager.AppSettings[signalName], out value))
+                {
+                    Console.WriteLine("Not a integer value for {0}", signalName);
+                    return false;
+                }
+                BrokenSignals[signalName.IndexOf(signalName, StringComparison.Ordinal)] = value != 1;
             }
             return true;
         }

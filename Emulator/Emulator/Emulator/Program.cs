@@ -9,7 +9,7 @@ namespace Emulator
     {
         private static void Main()
         {
-            if (!SettingsManager.HasAllSignals())
+            if (!SettingsManager.TryInitializeSignals())
             {
                 Console.WriteLine(
                     "You should set all signals [pusk|vzap1|zam1|zam2|chist|op|vib|zapp|pereh] in app.config (1 is ok , 0 is broken)");
