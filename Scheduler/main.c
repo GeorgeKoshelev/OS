@@ -24,6 +24,7 @@ volatile int threads_alive;
 volatile ucontext_t scheduler_context;
 volatile myContext contexts[NUMCONTEXTS];
 volatile ucontext_t * current_context;
+volatile int mutex = 0;
 
 struct itimerval it;
 sigset_t set;
@@ -69,6 +70,10 @@ void sleep_thread(int ms, int index){
 
 void timer_interrupt(int j, siginfo_t *si, void *old_context)
 {
+	if (mutex == 1){
+		printf("thread %d in crytical zone , get control back" , context_index);
+		swapcontext((ucontext_t *)current_context,(ucontext_t *)old_context);
+	}
 	printf("\npause thread %d for %d seconds \n",context_index,contexts[context_index].time_to_sleep);
 	contexts[context_index].context = *( ucontext_t *) old_context;
 	sleep_thread(contexts[context_index].time_to_sleep,context_index); 
@@ -104,10 +109,15 @@ void setup_signals(void)
 
 void low_priority_thread()
 {
-	int j;
+	int j , z;
 	for(j = 0; j < 15 ; j++){
-		printf(" %d ",j);
-		poll(NULL,0,100);
+		mutex = 1;
+		//crytical zone
+		for (z = 0 ; z < 2 ; z ++ ){
+			printf(" %d ",j);
+		}
+		mutex = 0;
+		poll (NULL,0,100);
     	}
     	contexts[context_index].isTerminated = 1;
 	threads_alive--;
@@ -115,10 +125,15 @@ void low_priority_thread()
 }
 
 void high_priority_thread(){
-	int j;
+	int j , z;
 	for(j = 97 ; j < 122 ; j++ ){
-		printf(" %c ",j);
-		poll(NULL,0,100);
+		mutex = 1;
+		//crytical zone
+		for (z = 0 ; z < 2 ; z++){
+			printf(" %c ",j);
+		}
+		mutex = 0;
+		poll (NULL,0,100);
 	}
 	contexts[context_index].isTerminated = 1;
 	threads_alive--;
