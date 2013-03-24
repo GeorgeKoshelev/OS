@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <poll.h>
 
-#define NUMCONTEXTS 6
+#define NUMCONTEXTS 4
               
 #define STACKSIZE 4096              
 #define INTERVAL 100
@@ -17,20 +17,17 @@ typedef struct{
 	int priority;
 	time_t wakeUpTime;
 	int time_to_sleep;
-} context_extension;
+} myContext;
 
-int isDebug = 0;
-int context_index = -1;
-int threads_alive;
-sigset_t set;                       
-ucontext_t scheduler_context;
-void *signal_stack;
+volatile int context_index = -1;
+volatile int threads_alive;                    
+volatile ucontext_t scheduler_context;
+volatile myContext contexts[NUMCONTEXTS];
+volatile ucontext_t * current_context;
 
-context_extension contexts[NUMCONTEXTS];
-
-ucontext_t * current_context;
 struct itimerval it;
-
+sigset_t set;
+void *signal_stack;
 void sheduler_sleep(int);
 
 void scheduler()
@@ -38,27 +35,27 @@ void scheduler()
 	sheduler_sleep(0);
 	while(threads_alive != 0){
 		int k;
-		time_t my_time = time(NULL);
+		time_t now = time(NULL);
 		for (k = NUMCONTEXTS/2;k<NUMCONTEXTS;k++){
 			if (contexts[k].isTerminated == 1)
 				continue;
-			if (my_time > contexts[k].wakeUpTime){
+			if (now > contexts[k].wakeUpTime){
 				context_index = k;
-				current_context = &contexts[k].context;	
+				current_context = (ucontext_t *)&contexts[k].context;	
 				printf("run thread %d,priority %d\n",k,contexts[k].priority);
 				sheduler_sleep(1);
-				setcontext(current_context);
+				setcontext((ucontext_t *)current_context);
 			}
 		}
 		for (k = 0 ; k < NUMCONTEXTS/2;k++){
 			if (contexts[k].isTerminated == 1)
 				continue;
-			if (my_time > contexts[k].wakeUpTime){
+			if (now > contexts[k].wakeUpTime){
 				context_index = k;
-				current_context = &contexts[k].context;
+				current_context = (ucontext_t *)&contexts[k].context;
 				printf("run thread %d , priority %d\n",k,contexts[k].priority);
 				sheduler_sleep(1);
-				setcontext(current_context);
+				setcontext((ucontext_t *)current_context);
 			}
 		}
 		poll(NULL,0,50);
@@ -75,7 +72,7 @@ void timer_interrupt(int j, siginfo_t *si, void *old_context)
 	printf("\npause thread %d for %d seconds \n",context_index,contexts[context_index].time_to_sleep);
 	contexts[context_index].context = *( ucontext_t *) old_context;
 	sleep_thread(contexts[context_index].time_to_sleep,context_index); 
-	swapcontext(current_context , &scheduler_context);
+	swapcontext((ucontext_t *)current_context , (ucontext_t *)&scheduler_context);
 }
 
 void init_scheduler_context(ucontext_t * signal_cont){
@@ -140,7 +137,7 @@ void create_thread(ucontext_t *uc,  void *function)
     uc->uc_stack.ss_sp = stack;
     uc->uc_stack.ss_size = STACKSIZE;
     uc->uc_stack.ss_flags = 0;
-    uc->uc_link = &scheduler_context;
+    uc->uc_link = (ucontext_t *)&scheduler_context;
     if (sigemptyset(&uc->uc_sigmask) < 0){
       printf("Can't initialize the signal set\n");
       exit(1);
@@ -159,23 +156,23 @@ int main(int argc , char* argv[])
     	}
 	int i;
     	for( i =  0; i < NUMCONTEXTS/2; i++){
-        	create_thread(&contexts[i].context, low_priority_thread);
+        	create_thread((ucontext_t *)&contexts[i].context, low_priority_thread);
 		contexts[i].isTerminated = 0;
 		contexts[i].priority = 1;
 		contexts[i].wakeUpTime = time(NULL);
-		contexts[i].time_to_sleep = 4; 
+		contexts[i].time_to_sleep = 6; 
 	}
 	for (i = NUMCONTEXTS/2 ; i< NUMCONTEXTS ; i++){
-		create_thread(&contexts[i].context,high_priority_thread);
+		create_thread((ucontext_t *)&contexts[i].context,high_priority_thread);
 		contexts[i].isTerminated = 0;
 		contexts[i].priority = 2;
 		contexts[i].wakeUpTime = time(NULL);
-		contexts[i].time_to_sleep = 5;
+		contexts[i].time_to_sleep = 4;
 	}
 	setup_signals();
-	init_scheduler_context(&scheduler_context);
+	init_scheduler_context((ucontext_t *)&scheduler_context);
 	current_context = &scheduler_context;
-	setcontext(current_context);
+	setcontext((ucontext_t *)current_context);
 	return 0;
 }
 
