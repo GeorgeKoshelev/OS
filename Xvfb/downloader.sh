@@ -24,15 +24,11 @@ xdpyinfo -display :32.0 >/dev/null 2>&1 && echo "32.0 already in use, please kil
 
 Xvfb :32 -screen 0 1024x768x24 -fbdir temp &
 XVFB=$!
-
 sleep 2
-
-export DISPLAY=:32.0 &
-sleep 1
+export DISPLAY=:32.0
 DISPLAY=:32 luakit &
 LUA=$!
 sleep 2
-
 xdotool selectwindow &
 sleep 2
 xdotool type ":open http://lostfilm.tv"
@@ -56,7 +52,6 @@ xdotool mousemove $coordinates click 1
 xdotool click 1
 sleep 5
 convert temp/Xvfb_screen0 screenshot.png
-
 kill $LUA
 kill $XVFB
 rm -rf temp
