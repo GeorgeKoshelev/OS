@@ -27,12 +27,18 @@ def send_message( interface , account_id , message , mailTo ):
 def main(argv):
 	if len(argv) != 4:
 		help()
-		return
+		return 1
 	fromJabber = argv[1]
 	toJabber = argv[2]
 	message = argv[3]
 	interface = get_interface()
+	if not interface:
+		print "Interface was not created , stop process"
+		return 1
 	fromJabberId =  interface.PurpleAccountsFind(fromJabber, protocol)
+	if not fromJabberId:
+		print "No account you specified was found or make shure you are running an instance of pidgin"
+		return 1
 	send_message(interface , fromJabberId , message , toJabber)	
 	return 0
 
