@@ -1,21 +1,29 @@
 This is a demonstration of working with mmap and sharing memory between processes.
-The code of game was taken from http://rosettacode.org/wiki/Conway%27s_Game_of_Life#C. I suspect that the game
-algorithm has some bugs, but in reality it doesn't matter, because I only need to demonstrate that client gets correct data
-from server.
+The code of game was taken from http://rosettacode.org/wiki/Conway%27s_Game_of_Life#C.
+You are able to run server for any number of client and with any size of desk.
+If you want change any of theese values you should edit common.h file.
 
-The memory is devided into 3 parts:
-1) one byte, it says which block to use
-2) 1-st block
-3) 2-nd block
+If you launch more clients than you specified in common.h, code may run unstable.
 
-After the server evaluates next generation it does next steps:
-1) It determines the block, it will be working with.
-2) It writes the data in block 
-3) It changes block flag.
+The memory of shelf is divided into two principal different parts. First part is binary data - structure, which allows to see business of
+blocks and specify actual block id. Second one is n+2 blocks, each block - configuration of game (where n - amount of clients).
 
-After client accept next request it does next steps:
-1) It creates map of file
-2) It takes a look at flag and determines which block to use
-3) It reads necessary block.
+Algorithm of server:
+Each second server produce evaluation.
+1) It chooses free block of memory (condition n+2 blocks garants that if each client assigned different block of memory ,
+ there will be a free block to evaluate)
 
-As you see, client has own unchangable copy files' map in memory and it means that client will get correct data. 
+example for 3 clients:
+C - current block , 1-3 id of clients
+
+[C,1] [2] [3] [] []
+server will evaluate to 4-th block , if clients are very very very slow , then next step will look like this
+[1] [2] [3] [C] []
+then condition n+2 guarantees that process won't stop.
+
+2) evaluate to free block
+3) set this block as current
+
+Before reading, client blocks the block using common structure.
+
+Using this strategy client will never get corrupted data.
