@@ -1,12 +1,12 @@
 CC = gcc
-TARGET = main
-OBJ = main.c
 RM = rm -f
 
 all : main
 
 main:
-	$(CC) -std=c99 -Wall $(OBJ) -o $(TARGET)
+	$(CC) -std=gnu99 -Wall main.c live.c -DA -o server
+	$(CC) -std=gnu99 -Wall client.c -o client
 clean:
-	$(RM) $(TARGET)
+	$(RM) client
+	$(RM) server
 
